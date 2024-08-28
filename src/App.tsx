@@ -1,27 +1,27 @@
-import "./App.css";
-import io from "socket.io-client";
+import './App.css';
+import io from 'socket.io-client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 const socket = io();
 
 function App() {
   const [userCreateForm, setUserCreateForm] = useState({
-    username: "",
-    password: "",
+    username: '',
+    password: '',
   });
 
   const [userLoginForm, setUserLoginForm] = useState({
-    username: "",
-    password: "",
+    username: '',
+    password: '',
   });
 
   useEffect(() => {
-    socket.on("createUser", (data) => {
+    socket.on('createUser', (data) => {
       console.log(data);
     });
 
-    socket.on("login", (data) => {
+    socket.on('login', (data) => {
       console.log(data);
     });
   }, []);
@@ -36,12 +36,12 @@ function App() {
 
   function handleCreateUserSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    socket.emit("createUser", userCreateForm);
+    socket.emit('createUser', userCreateForm);
   }
 
   function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    socket.emit("login", userLoginForm);
+    socket.emit('login', userLoginForm);
   }
 
   return (
@@ -51,38 +51,38 @@ function App() {
         <h2>Sign Up</h2>
         <form onSubmit={handleCreateUserSubmit}>
           <input
-            name="username"
+            name='username'
             value={userCreateForm.username}
-            type="text"
-            placeholder="Username"
+            type='text'
+            placeholder='Username'
             onChange={handleFormChange}
           />
           <input
-            name="password"
+            name='password'
             value={userCreateForm.password}
-            type="password"
-            placeholder="Password"
+            type='password'
+            placeholder='Password'
             onChange={handleFormChange}
           />
-          <button type="submit">Sign Up</button>
+          <button type='submit'>Sign Up</button>
         </form>
         <h2>Sign In</h2>
         <form onSubmit={handleLoginSubmit}>
           <input
-            type="text"
-            name="username"
+            type='text'
+            name='username'
             value={userLoginForm.username}
-            placeholder="Username"
+            placeholder='Username'
             onChange={handleLoginFormChange}
           />
           <input
-            type="password"
-            name="password"
+            type='password'
+            name='password'
             value={userLoginForm.password}
-            placeholder="Password"
+            placeholder='Password'
             onChange={handleLoginFormChange}
           />
-          <button type="submit">Sign In</button>
+          <button type='submit'>Sign In</button>
         </form>
       </div>
     </>
