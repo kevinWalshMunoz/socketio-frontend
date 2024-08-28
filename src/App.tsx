@@ -1,141 +1,91 @@
+import "./App.css";
 import io from "socket.io-client";
-import { v4 as uuidv4 } from "uuid";
 
 import { useState, useEffect } from "react";
 
-const socket = io({
-  auth: {
-    serverOffset: 0,
-  },
-  ackTimeout: 10000,
-  retries: 3,
-});
+const socket = io();
 
 function App() {
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<string[]>([]);
-  const [user, setUser] = useState({
-    id: 0,
+  const [userCreateForm, setUserCreateForm] = useState({
     username: "",
     password: "",
   });
-  const [isCreateUserVisible, setIsCreateUserVisible] = useState(true);
-  const [isSignup, setIsSignup] = useState(true);
+
+  const [userLoginForm, setUserLoginForm] = useState({
+    username: "",
+    password: "",
+  });
+
+  useEffect(() => {
+    socket.on("createUser", (data) => {
+      console.log(data);
+    });
+
+    socket.on("login", (data) => {
+      console.log(data);
+    });
+  }, []);
+
+  function handleFormChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setUserCreateForm({ ...userCreateForm, [e.target.name]: e.target.value });
+  }
+
+  function handleLoginFormChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setUserLoginForm({ ...userLoginForm, [e.target.name]: e.target.value });
+  }
 
   function handleCreateUserSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    socket.emit("createUser", user);
+    socket.emit("createUser", userCreateForm);
   }
 
-  const handleLoginUserSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    socket.emit("login", user);
-    setUser({
-      id: 0,
-      username: "",
-      password: "",
-    })
-  };
-
-
-  function handleUserUpdate(e: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value } = e.target;
-    setUser((prevValue) => {
-      return {
-        ...prevValue,
-        [name]: value,
-      };
-    });
+    socket.emit("login", userLoginForm);
   }
-
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (isSignup) {
-      handleCreateUserSubmit(e);
-    } else {
-      handleLoginUserSubmit(e);
-    }
-  };
-
-  const handleMessageSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setMessages((prevMessages) => [...prevMessages, message]);
-    socket.emit("message", message, uuidv4());
-    setMessage("");
-  };
-
-  useEffect(() => {
-    socket.on("message", (message: string, serverOffset: number) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
-      socket.auth.serverOffset = serverOffset;
-    });
-
-    socket.on("createUser", (id: number) => {
-      setUser((prevUser) => ({
-        ...prevUser,
-        id,
-      }));
-      setIsCreateUserVisible(false);
-    });
-
-    socket.on("login", (id: number, username: string) => {
-      setUser((prevUser) => ({
-        ...prevUser,
-        id,
-        username,
-      }));
-      setIsCreateUserVisible(false);
-    });
-
-    return () => {
-      socket.off();
-    };
-  }, []);
 
   return (
-    <div className="App">
-      {isCreateUserVisible ? (
-        <div>
-          <h1>{isSignup ? "Create User" : "Login"}</h1>
-          <button onClick={() => setIsSignup(!isSignup)}>
-            Switch to {isSignup ? "Login" : "Signup"}
-          </button>
-          <form onSubmit={handleFormSubmit}>
-            <input
-              type="text"
-              placeholder="Username"
-              onChange={handleUserUpdate}
-              name="username"
-              value={user.username}
-            />
-            <input
-              type="password"
-              placeholder="Fake Password (not encripted)"
-              onChange={handleUserUpdate}
-              name="password"
-              value={user.password}
-            />
-            <button type="submit">{isSignup ? "Create" : "Login"}</button>
-          </form>
-        </div>
-      ) : (
-        <h1>Welcome {user.username}</h1>
-      )}
-
+    <>
       <div>
-        <form onSubmit={handleMessageSubmit}>
+        <h1>Welcome</h1>
+        <h2>Sign Up</h2>
+        <form onSubmit={handleCreateUserSubmit}>
+          <input
+            name="username"
+            value={userCreateForm.username}
+            type="text"
+            placeholder="Username"
+            onChange={handleFormChange}
+          />
+          <input
+            name="password"
+            value={userCreateForm.password}
+            type="password"
+            placeholder="Password"
+            onChange={handleFormChange}
+          />
+          <button type="submit">Sign Up</button>
+        </form>
+        <h2>Sign In</h2>
+        <form onSubmit={handleLoginSubmit}>
           <input
             type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            name="username"
+            value={userLoginForm.username}
+            placeholder="Username"
+            onChange={handleLoginFormChange}
           />
-          <button type="submit">Send</button>
+          <input
+            type="password"
+            name="password"
+            value={userLoginForm.password}
+            placeholder="Password"
+            onChange={handleLoginFormChange}
+          />
+          <button type="submit">Sign In</button>
         </form>
-        {messages.map((message, index) => (
-          <div key={index}>{message}</div>
-        ))}
       </div>
-    </div>
+    </>
   );
 }
 
